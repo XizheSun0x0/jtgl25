@@ -1,0 +1,9 @@
+<view class="privacy-page">
+  <view class="title">隐私协议</view>
+  <view class="content">
+    <view>1. 本demo仅用于开发测试</view>
+    <view>2. 不会收集您的真实数据</view>
+    <view>3. 所有操作均为模拟行为</view>
+    <view>4. 请勿输入真实敏感信息</view>
+  </view>
+</view>

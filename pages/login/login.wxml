@@ -1,0 +1,8 @@
+<view class="login-container">
+  <button bindtap="handleLogin">微信登录</button>
+  
+  <view class="remember-me" bindtap="toggleRemember">
+    <icon type="{{rememberMe ? 'success' : 'circle'}}" size="16"/>
+    <text>记住我</text>
+  </view>
+</view>

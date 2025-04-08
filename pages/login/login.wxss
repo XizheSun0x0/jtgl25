@@ -1,0 +1,24 @@
+.remember-me {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+  color: #666;
+  font-size: 14px;
+}
+
+.remember-me icon {
+  margin-right: 10rpx;
+}
+
+.accept-pp {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+  color: #666;
+  font-size: 14px;
+  
+}
+
+.accept-pp icon {
+  margin-right: 10rpx;
+}

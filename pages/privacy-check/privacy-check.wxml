@@ -1,0 +1,9 @@
+<!--pages/privacy-check/privacy-check.wxml-->
+<!-- 嵌入隐私弹窗组件 -->
+<privacy-popup 
+  id="privacyPopup"
+  bind:agree="handleAgree"
+/>
+
+<!-- 空白页（仅用于承载组件） -->
+<view></view>
