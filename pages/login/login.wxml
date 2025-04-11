@@ -1,8 +1,26 @@
+<!-- pages/login/login.wxml -->
 <view class="login-container">
-  <button bindtap="handleLogin">微信登录</button>
+  <image src="/images/usr_icon.png" class="avatar"></image>
   
-  <view class="remember-me" bindtap="toggleRemember">
-    <icon type="{{rememberMe ? 'success' : 'circle'}}" size="16"/>
-    <text>记住我</text>
+  <!-- 开发模式显示模拟登录按钮 -->
+  <button 
+    wx:if="{{isDevMode}}"
+    class="login-btn" 
+    bindtap="handleLogin"
+  >开发模式登录</button>
+  
+  <!-- 生产环境显示真实登录按钮 -->
+  <button 
+    wx:else
+    class="login-btn" 
+    open-type="getPhoneNumber" 
+    bindgetphonenumber="getPhoneNumber"
+  >微信一键登录</button>
+
+  <view class="user-term-and-pp-container">
+    <checkbox checked="{{isAgreed}}" bindtap="toggleAgree"/>
+    <view class="privacy-tip" bindtap="toggleAgree">
+      本人已阅读并同意<text bindtap="viewPrivacy">《用户协议》</text>和<text bindtap="viewPrivacy">《隐私政策》</text>
+    </view>
   </view>
 </view>

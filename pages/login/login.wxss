@@ -1,24 +1,78 @@
-.remember-me {
+/* pages/login/login.wxss */
+.login-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-top: 20rpx;
-  color: #666;
-  font-size: 14px;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f8f8f8;
+  padding: 0 40rpx;
 }
 
-.remember-me icon {
+.avatar {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 80rpx;
+  border-radius: 50%;
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.login-btn {
+  width: 100%;
+  height: 90rpx;
+  line-height: 90rpx;
+  background-color: #07C160;
+  color: white;
+  font-size: 32rpx;
+  border-radius: 45rpx;
+  margin-bottom: 60rpx;
+  box-shadow: 0 4rpx 12rpx rgba(7, 193, 96, 0.3);
+}
+
+.login-btn::after {
+  border: none;
+}
+
+.login-btn:active {
+  opacity: 0.9;
+  transform: translateY(2rpx);
+}
+
+.user-term-and-pp-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 30rpx;
+}
+
+.agreePrivacy-checkbox {
+  transform: scale(0.8);
   margin-right: 10rpx;
 }
 
-.accept-pp {
-  display: flex;
-  align-items: center;
-  margin-top: 20rpx;
-  color: #666;
-  font-size: 14px;
-  
+.agreePrivacy-checkbox .wx-checkbox-input {
+  border-radius: 50%;
+  width: 36rpx;
+  height: 36rpx;
 }
 
-.accept-pp icon {
-  margin-right: 10rpx;
+.agreePrivacy-checkbox .wx-checkbox-input.wx-checkbox-input-checked {
+  background-color: #07C160;
+  border-color: #07C160;
+}
+
+.privacy-tip {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.6;
+}
+
+.privacy-tip text {
+  color: #576b95;
+  margin: 0 5rpx;
+}
+
+.privacy-tip text:active {
+  opacity: 0.7;
 }

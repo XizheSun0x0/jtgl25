@@ -1,5 +1,6 @@
 <view wx:if="{{showPopup}}" class="privacy-mask">
   <view class="privacy-container">
+    <checkbox checked="{{checked}}" bindtap="toggleCheck"/>
     <view class="privacy-content">
       请阅读并同意<text class="privacy-link" bindtap="openPrivacy">《隐私协议》</text>
     </view>

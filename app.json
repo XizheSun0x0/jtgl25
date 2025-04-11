@@ -4,6 +4,9 @@
     "pages/home/home",
     "pages/user/user"
   ],
+  "usingComponents": {
+    "privacy-popup": "components/privacy-popup/index"
+  },
   "entryPagePath": "pages/login/login", 
   "window": {
     "navigationBarTextStyle": "black",

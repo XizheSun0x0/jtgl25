@@ -1,82 +1,73 @@
 // pages/user/user.js
-const util = require('../../utils/util')
-// pages/user/user.js
+import { userStore } from '../../utils/user-store';
+const util = require('../../utils/util');
+
 Page({
   data: {
     hasSignedToday: false,
-    userInfo: {
-      id: '1111',
-      name: '金桐',
-      ptsBalance: '10',
-      profilePic: '/images/usr_icon.png',
-      phoneNumber: '13812345678'
-    },
     exchange_records: [
-      {
-        id: '11',
-        product_id: '1',
-        product_name: '模拟商品1',
-        points: '100',
-        exchange_time: util.formatTime(new Date())
-      },
-      {
-        id: '12',
-        product_id: '2',
-        product_name: '模拟商品2',
-        points: '50',
-        exchange_time: util.formatTime(new Date(Date.now() - 3600000)) // 1小时前
-      },
-      {
-        id: '13',
-        product_id: '3',
-        product_name: '模拟商品3',
-        points: '200',
-        exchange_time: util.formatTime(new Date(Date.now() - 86400000)) // 1天前
-      }
+      {id: '11', product_id: '1', product_name: '模拟商品1', points: '100', exchange_time: util.formatTime(new Date())},
+      {id: '12', product_id: '2', product_name: '模拟商品2', points: '50', exchange_time: util.formatTime(new Date(Date.now() - 3600000))},
+      {id: '13', product_id: '3', product_name: '模拟商品3', points: '200', exchange_time: util.formatTime(new Date(Date.now() - 86400000))}
     ],
-    allTransactions: [], // 所有交易记录
-    displayedTransactions: [], // 当前显示的交易记录
-    isLoading: false,
+    displayedTransactions: [],
     searchKeyword: '',
-    pageSize: 3, // 初始显示3条
-    currentPage: 1,
-    hasMore: true
+    isLoading: false
   },
 
-  // 格式化时间函数（精确到秒）
-  formatTime: function(date) {
-    const year = date.getFullYear()
-    const month = date.getMonth() + 1
-    const day = date.getDate()
-    const hour = date.getHours()
-    const minute = date.getMinutes()
-    const second = date.getSeconds()
-
-    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`
+  onLoad() {
+    // 初始化数据
+    this.setData({ 
+      userInfo: userStore.get() 
+    });
+    
+    // 订阅变更
+    this.unsubscribe = userStore.subscribe(userInfo => {
+      this.setData({ userInfo });
+    });
   },
-  
+
+  onUnload() {
+    this.unsubscribe?.();
+  },
+
+  checkSignStatus() {
+    const today = new Date().toDateString();
+    this.setData({
+      hasSignedToday: wx.getStorageSync('lastSignDate') === today
+    });
+  },
+
+  async handleSign() {
+    if (this.data.hasSignedToday) return;
+    
+    const success = await userStore.signIn();
+    if (success) {
+      wx.showToast({ title: '签到成功+1积分', icon: 'success' });
+      this.setData({ hasSignedToday: true });
+    }
+  },
+
   logout() {
     wx.showModal({
       title: '提示',
       content: '确定要退出登录吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.removeStorageSync('token')
-          wx.reLaunch({ url: '/pages/login/login' })
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('userInfo');
+          userStore.update(null);
+          wx.reLaunch({ url: '/pages/login/login' });
         }
       }
-    })
+    });
   },
 
-  onLoad(options) {
-    this.checkSignStatus();
-    this.initTransactions();
-  },
-
-// 初始化交易记录
-initTransactions() {
-  // 模拟从后端获取数据
-  const mockData = [
+  /*交易记录 */
+  // 初始化交易记录
+  initTransactions() {
+    // 模拟从后端获取数据
+    const mockData = [
     {id: '11', product_id: '1', product_name: '模拟商品1', points: '100', exchange_time: util.formatTime(new Date())},
     {id: '12', product_id: '2', product_name: '模拟商品2', points: '50', exchange_time: util.formatTime(new Date(Date.now() - 3600000))},
     {id: '13', product_id: '3', product_name: '模拟商品3', points: '200', exchange_time: util.formatTime(new Date(Date.now() - 86400000))},
@@ -209,9 +200,9 @@ initTransactions() {
       hasMore: true
     });
   },
-  
+  /*交易记录 */
 
-  //签到模块
+  /*签到模块*/
   checkSignStatus() {
     const lastSignDate = wx.getStorageSync('lastSignDate');
     const today = new Date().toDateString();
@@ -241,7 +232,9 @@ initTransactions() {
       icon: 'success'
     });
   },
+  /*签到模块*/
 
+  /* other life circle */
   onReady() {},
   onShow() {},
   onHide() {},
@@ -249,4 +242,5 @@ initTransactions() {
   onPullDownRefresh() {},
   onReachBottom() {},
   onShareAppMessage() {}
+  /* other life circle */
 })
