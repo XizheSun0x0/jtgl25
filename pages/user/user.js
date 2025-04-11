@@ -5,26 +5,28 @@ const util = require('../../utils/util');
 Page({
   data: {
     hasSignedToday: false,
-    exchange_records: [
-      {id: '11', product_id: '1', product_name: '模拟商品1', points: '100', exchange_time: util.formatTime(new Date())},
-      {id: '12', product_id: '2', product_name: '模拟商品2', points: '50', exchange_time: util.formatTime(new Date(Date.now() - 3600000))},
-      {id: '13', product_id: '3', product_name: '模拟商品3', points: '200', exchange_time: util.formatTime(new Date(Date.now() - 86400000))}
-    ],
+    exchange_records: [], // 初始化为空数组
+    allTransactions: [],  // 新增全量交易记录
     displayedTransactions: [],
     searchKeyword: '',
-    isLoading: false
+    isLoading: false,
+    pageSize: 3,         // 新增：每页显示数量
+    currentPage: 1,      // 新增：当前页码
+    hasMore: true        // 新增：是否有更多数据
   },
 
   onLoad() {
-    // 初始化数据
     this.setData({ 
       userInfo: userStore.get() 
     });
     
-    // 订阅变更
     this.unsubscribe = userStore.subscribe(userInfo => {
       this.setData({ userInfo });
     });
+
+    // 初始化交易记录
+    this.initTransactions();
+    this.checkSignStatus();
   },
 
   onUnload() {
@@ -48,21 +50,6 @@ Page({
     }
   },
 
-  logout() {
-    wx.showModal({
-      title: '提示',
-      content: '确定要退出登录吗？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.removeStorageSync('token');
-          wx.removeStorageSync('userInfo');
-          userStore.update(null);
-          wx.reLaunch({ url: '/pages/login/login' });
-        }
-      }
-    });
-  },
-
   /*交易记录 */
   // 初始化交易记录
   initTransactions() {
@@ -77,36 +64,38 @@ Page({
   ];
   
   this.setData({
-    allTransactions: mockData,
-    displayedTransactions: mockData.slice(0, this.data.pageSize)
-  });
+      allTransactions: mockData,
+      displayedTransactions: mockData.slice(0, this.data.pageSize),
+      exchange_records: mockData // 同步到旧字段保持兼容
+    });
 },
 
-  // 加载更多交易记录
-  loadMoreTransactions() {
-    if (!this.data.hasMore || this.data.isLoading) return;
+loadMoreTransactions() {
+  if (!this.data.hasMore || this.data.isLoading) return;
+  
+  this.setData({ isLoading: true });
+  
+  setTimeout(() => {
+    const nextPage = this.data.currentPage + 1;
+    const startIndex = (nextPage - 1) * this.data.pageSize;
+    const newTransactions = this.data.allTransactions.slice(
+      startIndex, 
+      startIndex + this.data.pageSize
+    );
     
-    this.setData({ isLoading: true });
+    if (newTransactions.length > 0) {
+      this.setData({
+        displayedTransactions: [...this.data.displayedTransactions, ...newTransactions],
+        currentPage: nextPage,
+        hasMore: startIndex + this.data.pageSize < this.data.allTransactions.length
+      });
+    } else {
+      this.setData({ hasMore: false });
+    }
     
-    // 模拟网络请求延迟
-    setTimeout(() => {
-      const nextPage = this.data.currentPage + 1;
-      const startIndex = (nextPage - 1) * this.data.pageSize;
-      const newTransactions = this.data.allTransactions.slice(startIndex, startIndex + this.data.pageSize);
-      
-      if (newTransactions.length > 0) {
-        this.setData({
-          displayedTransactions: [...this.data.displayedTransactions, ...newTransactions],
-          currentPage: nextPage
-        });
-      } else {
-        this.setData({ hasMore: false });
-      }
-      
-      this.setData({ isLoading: false });
-    }, 800);
-  },
-
+    this.setData({ isLoading: false });
+  }, 500);
+},
   // 处理搜索输入
   handleSearchInput(e) {
     this.setData({ searchKeyword: e.detail.value.trim() });
@@ -202,43 +191,43 @@ Page({
   },
   /*交易记录 */
 
-  /*签到模块*/
+  /* 签到相关方法 */
   checkSignStatus() {
-    const lastSignDate = wx.getStorageSync('lastSignDate');
     const today = new Date().toDateString();
     this.setData({
-      hasSignedToday: lastSignDate === today
+      hasSignedToday: wx.getStorageSync('lastSignDate') === today
     });
   },
-
-  handleSign: function() {
+  async handleSign() {
     if (this.data.hasSignedToday) return;
     
-    const today = new Date().toDateString();
-    
-    this.setData({
-      hasSignedToday: true
-    });
-    
-    wx.setStorageSync('lastSignDate', today);
-    
-    const newPoints = parseInt(this.data.userInfo.ptsBalance) + 1;
-    this.setData({
-      'userInfo.ptsBalance': newPoints.toString()
-    });
-
-    wx.showToast({
-      title: '签到成功+1积分',
-      icon: 'success'
-    });
+    const success = await userStore.signIn();
+    if (success) {
+      wx.showToast({ title: '签到成功+1积分', icon: 'success' });
+      this.setData({ hasSignedToday: true });
+    }
   },
   /*签到模块*/
+
+  logout() {
+    wx.showModal({
+      title: '提示',
+      content: '确定要退出登录吗？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('userInfo');
+          userStore.update(null);
+          wx.reLaunch({ url: '/pages/login/login' });
+        }
+      }
+    });
+  },
 
   /* other life circle */
   onReady() {},
   onShow() {},
   onHide() {},
-  onUnload() {},
   onPullDownRefresh() {},
   onReachBottom() {},
   onShareAppMessage() {}
