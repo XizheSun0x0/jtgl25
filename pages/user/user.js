@@ -8,11 +8,13 @@ Page({
     exchange_records: [], // 初始化为空数组
     allTransactions: [],  // 新增全量交易记录
     displayedTransactions: [],
+    transactions: [],
     searchKeyword: '',
     isLoading: false,
     pageSize: 3,         // 新增：每页显示数量
     currentPage: 1,      // 新增：当前页码
     hasMore: true        // 新增：是否有更多数据
+
   },
 
   onLoad() {
@@ -31,6 +33,7 @@ Page({
 
   onUnload() {
     this.unsubscribe?.();
+    this.transactionUnsubscribe?.();
   },
 
   checkSignStatus() {
@@ -64,10 +67,19 @@ Page({
   ];
   
   this.setData({
-      allTransactions: mockData,
-      displayedTransactions: mockData.slice(0, this.data.pageSize),
-      exchange_records: mockData // 同步到旧字段保持兼容
+    transactions: userStore.getTransactions(),
+    displayedTransactions: userStore.getTransactions().slice(0, this.data.pageSize)
+  });
+},
+
+// 监听交易变化
+setupTransactionListener() {
+  this.transactionUnsubscribe = userStore.subscribe(() => {
+    this.setData({
+      transactions: userStore.getTransactions(),
+      displayedTransactions: userStore.getTransactions().slice(0, this.data.pageSize)
     });
+  });
 },
 
 loadMoreTransactions() {
@@ -213,17 +225,17 @@ loadMoreTransactions() {
     wx.showModal({
       title: '提示',
       content: '确定要退出登录吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          wx.removeStorageSync('token');
+          // 清除用户相关数据，但保留库存数据
           wx.removeStorageSync('userInfo');
+          wx.removeStorageSync('token');
           userStore.update(null);
           wx.reLaunch({ url: '/pages/login/login' });
         }
       }
-    });
-  },
-
+  }
+  )},
   /* other life circle */
   onReady() {},
   onShow() {},

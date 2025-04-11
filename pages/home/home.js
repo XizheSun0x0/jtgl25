@@ -18,6 +18,18 @@ Page({
   onLoad() {
     this.initData();
     this.setupUserListener();
+    this.initInventory();
+  },
+
+  // 初始化库存状态
+  async initInventory() {
+    const inventory = userStore.getInventory();
+    this.setData({
+      homeGridItem: this.data.homeGridItem.map(item => ({
+        ...item,
+        availableAmount: inventory.find(i => i.id === item.id)?.availableAmount || 0
+      }))
+    });
   },
 
   initData() {
@@ -88,31 +100,41 @@ Page({
     });
   },
 
+  // 修改兑换逻辑
   async processRedeem(itemId, itemPrice) {
-    wx.showLoading({ title: '兑换处理中...', mask: true });
-
+    wx.showLoading({ title: '处理中...' });
+    
     try {
-      // 1. 更新用户积分
+      // 1. 检查库存
+      const currentItem = this.data.homeGridItem.find(i => i.id === itemId);
+      if (currentItem.availableAmount <= 0) {
+        throw new Error('库存不足');
+      }
+
+      // 2. 更新积分
       await userStore.update(user => ({
         ptsBalance: String(parseInt(user.ptsBalance) - itemPrice)
       }));
 
-      // 2. 更新本地库存
-      this.updateItemStock(itemId);
-
-      // 3. 显示兑换成功
-      wx.showToast({ 
-        title: '兑换成功', 
-        icon: 'success',
-        duration: 2000,
-        success: () => {
-          // 可添加跳转到订单详情等逻辑
-        }
+      // 3. 更新库存（本地+持久化）
+      const newAmount = currentItem.availableAmount - 1;
+      await userStore.updateInventory(itemId, newAmount);
+      
+      this.setData({
+        [`homeGridItem[${itemId}].availableAmount`]: newAmount
       });
 
+      // 4. 添加交易记录
+      await userStore.addTransaction({
+        product_id: itemId,
+        product_name: currentItem.name,
+        points: itemPrice
+      });
+
+      wx.showToast({ title: '兑换成功', icon: 'success' });
+      
     } catch (error) {
-      console.error('兑换失败:', error);
-      wx.showToast({ title: '兑换失败，请重试', icon: 'none' });
+      wx.showToast({ title: error.message, icon: 'none' });
     } finally {
       wx.hideLoading();
     }
